@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Student Panel</h2>
+            <ul>
+                <li><a href="/student/dashboard">Dashboard</a></li>
+                <li><a href="/student/attendance">Attendance</a></li>
+                <li><a href="/student/marks">Marks</a></li>
+                <li><a href="/student/timetable" class="active">Timetable</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %> - Class <%= className %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Class Information Summary -->
+            <div class="class-info-summary">
+                <div class="info-cards">
+                    <div class="info-card">
+                        <div class="card-icon">🏫</div>
+                        <div class="card-content">
+                            <h4>My Class</h4>
+                            <p><%= className %></p>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="card-icon">📚</div>
+                        <div class="card-content">
+                            <h4>Subjects</h4>
+                            <p>
+                                <% 
+                                const uniqueSubjects = [...new Set(timetable.map(entry => entry.subject))];
+                                %>
+                                <%= uniqueSubjects.length %> Subjects
+                            </p>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="card-icon">📅</div>
+                        <div class="card-content">
+                            <h4>Weekly Classes</h4>
+                            <p><%= timetable.length %> Periods</p>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="card-icon">🎒</div>
+                        <div class="card-content">
+                            <h4>Roll Number</h4>
+                            <p><%= studentInfo.roll_no %></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weekly Schedule Overview -->
+            <div class="weekly-timetable-card">
+                <div class="table-header">
+                    <h3>📅 My Weekly Timetable - Class <%= className %></h3>
+                </div>
+                
+                <% if (timetable.length > 0) { %>
+                    <div class="weekly-grid">
+                        <% 
+                        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+                        const periods = ['1', '2', '3', '4'];
+                        const scheduleByDay = {};
+                        
+                        // Group timetable by day
+                        timetable.forEach(entry => {
+                            if (!scheduleByDay[entry.day]) {
+                                scheduleByDay[entry.day] = {};
+                            }
+                            scheduleByDay[entry.day][entry.period] = entry;
+                        });
+                        %>
+                        
+                        <!-- Time header -->
+                        <div class="time-header">Time</div>
+                        <% days.forEach(day => { %>
+                            <div class="day-header">
+                                <div class="day-name"><%= day %></div>
+                                <div class="day-date">
+                                    <% 
+                                    const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                                    const today = new Date();
+                                    const currentDayIndex = today.getDay();
+                                    const targetDayIndex = dayNames.indexOf(day);
+                                    
+                                    if (targetDayIndex === currentDayIndex) {
+                                    %>
+                                        <span class="today-badge">Today</span>
+                                    <% } else { %>
+                                        <span class="date-text"><%= day.substring(0, 3) %></span>
+                                    <% } %>
+                                </div>
+                            </div>
+                        <% }) %>
+                        
+                        <!-- Timetable rows -->
+                        <% periods.forEach(period => { %>
+                            <div class="period-time-slot">
+                                <div class="period-label">Period <%= period %></div>
+                                <div class="time-range">
+                                    <% 
+                                    const timeSlots = {
+                                        '1': '9:00-9:40',
+                                        '2': '9:40-10:20', 
+                                        '3': '10:40-11:20',
+                                        '4': '11:20-12:00'
+                                    };
+                                    %>
+                                    <%= timeSlots[period] %>
+                                </div>
+                            </div>
+                            
+                            <% days.forEach(day => { %>
+                                <div class="subject-cell">
+                                    <% const entry = scheduleByDay[day] && scheduleByDay[day][period]; %>
+                                    <% if (entry) { %>
+                                        <div class="subject-content subject-<%= entry.subject.toLowerCase() %>">
+                                            <div class="subject-icon">
+                                                <% if (entry.subject === 'English') { %>📚
+                                                <% } else if (entry.subject === 'Hindi') { %>🇮🇳
+                                                <% } else if (entry.subject === 'Maths') { %>🔢
+                                                <% } %>
+                                            </div>
+                                            <div class="subject-name"><%= entry.subject %></div>
+                                            <div class="teacher-name"><%= entry.teacher_name || 'Teacher' %></div>
+                                        </div>
+                                    <% } else { %>
+                                        <div class="empty-slot">
+                                            <span class="no-class">🚫</span>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% }) %>
+                            
+                            <!-- Break time indicator -->
+                            <% if (period === '2') { %>
+                                <div class="break-row">
+                                    <div class="break-time">
+                                        <div class="break-label">Break</div>
+                                        <div class="break-duration">10:20-10:40</div>
+                                    </div>
+                                    <% for (let i = 0; i < 5; i++) { %>
+                                        <div class="break-cell">
+                                            <div class="break-content">
+                                                <span class="break-emoji">🍪</span>
+                                                <span class="break-text">Break</span>
+                                            </div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% } %>
+                        <% }) %>
+                    </div>
+                <% } else { %>
+                    <div class="no-timetable">
+                        <div class="emoji">📚</div>
+                        <h4>No timetable available</h4>
+                        <p>Please contact your teacher or administrator.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- My Daily Schedule Card -->
+            <div class="today-schedule-card">
+                <div class="schedule-header">
+                    <h3>📅 Today's Classes - <%= new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) %></h3>
+                </div>
+                <div class="today-classes">
+                    <% 
+                    const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+                    const todaySchedule = timetable.filter(entry => entry.day === today);
+                    todaySchedule.sort((a, b) => parseInt(a.period) - parseInt(b.period));
+                    %>
+                    
+                    <% if (todaySchedule.length > 0) { %>
+                        <div class="period-timeline">
+                            <% todaySchedule.forEach((entry, index) => { %>
+                                <div class="period-card">
+                                    <div class="period-time">
+                                        <span class="period-num">Period <%= entry.period %></span>
+                                        <span class="time-slot">
+                                            <% 
+                                            const timeSlots = {
+                                                '1': '9:00 - 9:40 AM',
+                                                '2': '9:40 - 10:20 AM', 
+                                                '3': '10:40 - 11:20 AM',
+                                                '4': '11:20 - 12:00 PM'
+                                            };
+                                            %>
+                                            <%= timeSlots[entry.period] || 'Time TBA' %>
+                                        </span>
+                                    </div>
+                                    <div class="subject-info">
+                                        <div class="subject-name">
+                                            <% if (entry.subject === 'English') { %>📚<% } %>
+                                            <% if (entry.subject === 'Hindi') { %>🇮🇳<% } %>
+                                            <% if (entry.subject === 'Maths') { %>🔢<% } %>
+                                            <%= entry.subject %>
+                                        </div>
+                                        <div class="teacher-name">with <%= entry.teacher_name || 'Teacher' %></div>
+                                    </div>
+                                </div>
+                                <% if (index < todaySchedule.length - 1) { %>
+                                    <div class="break-indicator">
+                                        <% if (entry.period === '2') { %>
+                                            <span class="break-text">🍪 Break Time (20 min)</span>
+                                        <% } else { %>
+                                            <span class="break-text">• • •</span>
+                                        <% } %>
+                                    </div>
+                                <% } %>
+                            <% }) %>
+                        </div>
+                    <% } else { %>
+                        <div class="no-classes">
+                            <div class="emoji">🎉</div>
+                            <h4>No Classes Today!</h4>
+                            <p>Enjoy your day off or use this time for reading!</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Class Information -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>About My Class</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <% if (timetable.length > 0) { %>
+                        <div class="subjects-overview">
+                            <h5>Subjects I Study:</h5>
+                            <div class="subjects-list">
+                                <% uniqueSubjects.forEach(subject => { %>
+                                    <span class="subject-tag <%= subject.toLowerCase() %>-tag">
+                                        <% if (subject === 'English') { %>📚<% } %>
+                                        <% if (subject === 'Hindi') { %>🇮🇳<% } %>
+                                        <% if (subject === 'Maths') { %>🔢<% } %>
+                                        <%= subject %>
+                                    </span>
+                                <% }) %>
+                            </div>
+                        </div>
+                    <% } else { %>
+                        <p>Contact your teacher for your class schedule.</p>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Today's Schedule Card */
+        .today-schedule-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .schedule-header {
+            padding: 20px;
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .schedule-header h3 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .today-classes {
+            padding: 20px;
+        }
+        
+        .period-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .period-card {
+            background: rgba(255,255,255,0.95);
+            color: #2c3e50;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease;
+        }
+        
+        .period-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .period-time {
+            min-width: 140px;
+            margin-right: 20px;
+        }
+        
+        .period-num {
+            display: block;
+            font-weight: bold;
+            color: #3498db;
+            font-size: 1.1rem;
+        }
+        
+        .time-slot {
+            display: block;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            margin-top: 2px;
+        }
+        
+        .subject-info {
+            flex: 1;
+        }
+        
+        .subject-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        
+        .teacher-name {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .break-indicator {
+            text-align: center;
+            margin: 8px 0;
+        }
+        
+        .break-text {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            padding: 5px 15px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            display: inline-block;
+        }
+        
+        .no-classes {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .no-classes .emoji {
+            font-size: 3rem;
+            margin-bottom: 15px;
+        }
+        
+        .no-classes h4 {
+            margin: 0 0 10px 0;
+            font-size: 1.3rem;
+        }
+        
+        .no-classes p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        
+        /* Weekly Timetable Card */
+        .weekly-timetable-card {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .weekly-grid {
+            display: grid;
+            grid-template-columns: 120px repeat(5, 1fr);
+            gap: 1px;
+            background: #ecf0f1;
+            margin: 0;
+        }
+        
+        .time-header {
+            background: #34495e;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        .day-header {
+            background: #3498db;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .day-name {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+        
+        .today-badge {
+            background: #e74c3c;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        
+        .date-text {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+        
+        .period-time-slot {
+            background: #ecf0f1;
+            padding: 12px;
+            text-align: center;
+            border-right: 1px solid #bdc3c7;
+        }
+        
+        .period-label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+        
+        .time-range {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            margin-top: 3px;
+        }
+        
+        .subject-cell {
+            background: white;
+            padding: 12px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .subject-content {
+            width: 100%;
+        }
+        
+        .subject-content.subject-english {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border-radius: 8px;
+            padding: 10px;
+            color: #2c3e50;
+        }
+        
+        .subject-content.subject-hindi {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border-radius: 8px;
+            padding: 10px;
+            color: #2c3e50;
+        }
+        
+        .subject-content.subject-maths {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            border-radius: 8px;
+            padding: 10px;
+            color: #2c3e50;
+        }
+        
+        .subject-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        
+        .subject-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 3px;
+        }
+        
+        .teacher-name {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+        
+        .empty-slot {
+            opacity: 0.3;
+        }
+        
+        .no-class {
+            font-size: 1.5rem;
+        }
+        
+        .break-row {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: 120px repeat(5, 1fr);
+            gap: 1px;
+            background: #f39c12;
+        }
+        
+        .break-time {
+            background: #e67e22;
+            color: white;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .break-label {
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+        
+        .break-duration {
+            font-size: 0.7rem;
+            margin-top: 2px;
+        }
+        
+        .break-cell {
+            background: #f39c12;
+            padding: 8px;
+            text-align: center;
+        }
+        
+        .break-content {
+            color: white;
+        }
+        
+        .break-emoji {
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+        
+        .break-text {
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .no-timetable {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+        
+        .no-timetable .emoji {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        .no-timetable h4 {
+            margin: 0 0 15px 0;
+            color: #2c3e50;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .weekly-grid {
+                grid-template-columns: 1fr;
+                gap: 10px;
+                padding: 10px;
+                background: transparent;
+            }
+            
+            .time-header {
+                display: none;
+            }
+            
+            .day-header {
+                grid-column: 1;
+                border-radius: 8px;
+            }
+            
+            .period-time-slot,
+            .subject-cell {
+                border-radius: 8px;
+                margin-bottom: 5px;
+            }
+            
+            .period-card {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .period-time {
+                min-width: auto;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .break-row {
+                grid-template-columns: 1fr;
+                border-radius: 8px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .today-schedule-card,
+            .weekly-timetable-card {
+                margin: 10px;
+                border-radius: 10px;
+            }
+            
+            .schedule-header,
+            .today-classes {
+                padding: 15px;
+            }
+            
+            .period-card {
+                padding: 12px;
+            }
+            
+            .subject-name {
+                font-size: 1rem;
+            }
+        }
+    </style>
+    
+    <!-- Additional Styles for Info Cards -->
+    <style>
+        /* Class Info Summary */
+        .class-info-summary {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+        
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0;
+        }
+        
+        .info-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border-right: 1px solid #f0f0f0;
+            transition: background-color 0.2s ease;
+        }
+        
+        .info-card:last-child {
+            border-right: none;
+        }
+        
+        .info-card:hover {
+            background: #f8f9fa;
+        }
+        
+        .card-icon {
+            font-size: 2rem;
+            margin-right: 15px;
+            opacity: 0.8;
+        }
+        
+        .card-content h4 {
+            margin: 0 0 5px 0;
+            color: #555;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        
+        .card-content p {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        .subjects-overview {
+            text-align: center;
+        }
+        
+        .subjects-overview h5 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .subjects-list {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .subject-tag {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .english-tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .hindi-tag {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .maths-tag {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+        
+        @media (max-width: 768px) {
+            .info-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-card {
+                border-right: none;
+                border-bottom: 1px solid #f0f0f0;
+            }
+            
+            .info-card:last-child {
+                border-bottom: none;
+            }
+        }
+    </style>
+

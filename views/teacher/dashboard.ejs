@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Teacher Panel</h2>
+            <ul>
+                <li><a href="/teacher/dashboard" class="active">Dashboard</a></li>
+                <li><a href="/teacher/attendance">Attendance</a></li>
+                <li><a href="/teacher/marks">Marks</a></li>
+                <li><a href="/teacher/timetable">Timetable</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Today's Attendance Statistics -->
+            <div class="stats-cards">
+                <div class="card students">
+                    <h3>Present Today</h3>
+                    <div class="number"><%= stats.present %></div>
+                </div>
+                <div class="card teachers">
+                    <h3>Absent Today</h3>
+                    <div class="number"><%= stats.absent %></div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <a href="/teacher/attendance" class="btn btn-primary">Mark Attendance</a>
+                    <a href="/teacher/marks" class="btn btn-success">Add Marks</a>
+                    <a href="/teacher/timetable" class="btn btn-warning">View Timetable</a>
+                </div>
+            </div>
+
+            <!-- Teacher Overview -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Teacher Dashboard Overview</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <p>Welcome to your Teacher Dashboard!</p>
+                    <p>Here you can manage your daily teaching activities:</p>
+                    <ul style="margin-top: 15px; padding-left: 20px;">
+                        <li><strong>Mark Attendance:</strong> Record daily attendance for your students</li>
+                        <li><strong>Add Marks:</strong> Enter exam and test scores for your students</li>
+                        <li><strong>View Timetable:</strong> Check your class schedule</li>
+                        <li><strong>Monitor Progress:</strong> Track student performance and attendance</li>
+                    </ul>
+                    <div style="margin-top: 20px; padding: 15px; background: #e8f4fd; border-left: 4px solid #2196F3; border-radius: 4px;">
+                        <strong>Today's Summary:</strong><br>
+                        You have marked attendance for <%= stats.present + stats.absent %> students today.
+                        <% if (stats.present + stats.absent === 0) { %>
+                            <br><em>No attendance marked yet for today.</em>
+                        <% } %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

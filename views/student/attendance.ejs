@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Student Panel</h2>
+            <ul>
+                <li><a href="/student/dashboard">Dashboard</a></li>
+                <li><a href="/student/attendance" class="active">Attendance</a></li>
+                <li><a href="/student/marks">Marks</a></li>
+                <li><a href="/student/timetable">Timetable</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Attendance Statistics -->
+            <div class="stats-cards">
+                <div class="card students">
+                    <h3>Overall Attendance</h3>
+                    <div class="number"><%= attendancePercentage %>%</div>
+                </div>
+                <div class="card teachers">
+                    <h3>Present Days</h3>
+                    <div class="number"><%= stats.present %></div>
+                </div>
+                <div class="card attendance">
+                    <h3>Total Days</h3>
+                    <div class="number"><%= stats.total %></div>
+                </div>
+            </div>
+
+            <!-- Attendance Status -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Attendance Status</h3>
+                </div>
+                <div class="attendance-status">
+                    <div class="status-bar">
+                        <div class="status-segment present" style="width: <%= stats.total > 0 ? (stats.present / stats.total) * 100 : 0 %>%;">
+                            <span>Present (<%= stats.present %>)</span>
+                        </div>
+                        <div class="status-segment absent" style="width: <%= stats.total > 0 ? (stats.absent / stats.total) * 100 : 0 %>%;">
+                            <span>Absent (<%= stats.absent %>)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detailed Attendance Records -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Attendance Records</h3>
+                </div>
+                <% if (attendance.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Day</th>
+                                <th>Status</th>
+                                <th>Marked By</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% attendance.forEach(record => { %>
+                                <tr>
+                                    <td><%= new Date(record.date).toLocaleDateString() %></td>
+                                    <td><%= new Date(record.date).toLocaleDateString('en-US', { weekday: 'long' }) %></td>
+                                    <td>
+                                        <span class="status-badge status-<%= record.status %>">
+                                            <%= record.status.charAt(0).toUpperCase() + record.status.slice(1) %>
+                                        </span>
+                                    </td>
+                                    <td><%= record.teacher_name || 'System' %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div style="padding: 20px; text-align: center;">
+                        <p>No attendance records found.</p>
+                        <p>Your teacher will mark attendance during class time.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Monthly Attendance Chart -->
+            <% if (attendance.length > 0) { %>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Monthly Overview</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div class="monthly-overview">
+                            <% 
+                            // Group attendance by month
+                            const monthlyData = {};
+                            attendance.forEach(record => {
+                                const month = new Date(record.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long' });
+                                if (!monthlyData[month]) {
+                                    monthlyData[month] = { present: 0, absent: 0, late: 0, total: 0 };
+                                }
+                                monthlyData[month][record.status]++;
+                                monthlyData[month].total++;
+                            });
+                            
+                            const sortedMonths = Object.keys(monthlyData).sort((a, b) => new Date(a) - new Date(b));
+                            %>
+                            
+                            <% sortedMonths.forEach(month => { %>
+                                <div class="month-card">
+                                    <h4><%= month %></h4>
+                                    <div class="month-stats">
+                                        <div class="stat-item">
+                                            <span class="stat-label">Present:</span>
+                                            <span class="stat-value"><%= monthlyData[month].present %></span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Absent:</span>
+                                            <span class="stat-value"><%= monthlyData[month].absent %></span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Late:</span>
+                                            <span class="stat-value"><%= monthlyData[month].late %></span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <span class="stat-label">Percentage:</span>
+                                            <span class="stat-value">
+                                                <%= ((monthlyData[month].present / monthlyData[month].total) * 100).toFixed(1) %>%
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Attendance Requirements -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Attendance Requirements</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div class="requirement-grid">
+                        <div class="requirement-item">
+                            <div class="requirement-title">Minimum Required</div>
+                            <div class="requirement-value">75%</div>
+                            <div class="requirement-status <%= parseFloat(attendancePercentage) >= 75 ? 'met' : 'not-met' %>">
+                                <%= parseFloat(attendancePercentage) >= 75 ? '✓ Met' : '✗ Not Met' %>
+                            </div>
+                        </div>
+                        <div class="requirement-item">
+                            <div class="requirement-title">Your Current</div>
+                            <div class="requirement-value"><%= attendancePercentage %>%</div>
+                            <div class="requirement-status <%= parseFloat(attendancePercentage) >= 75 ? 'met' : 'not-met' %>">
+                                <%= parseFloat(attendancePercentage) >= 90 ? 'Excellent' : 
+                                    parseFloat(attendancePercentage) >= 75 ? 'Good' : 'Needs Improvement' %>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-present { background: #d4edda; color: #155724; }
+        .status-absent { background: #f8d7da; color: #721c24; }
+        
+        .attendance-status {
+            padding: 20px;
+        }
+        
+        .status-bar {
+            display: flex;
+            height: 40px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .status-segment {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 12px;
+            min-width: 20px;
+        }
+        
+        .status-segment.present { background: #28a745; }
+        .status-segment.absent { background: #dc3545; }
+        
+        .monthly-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .month-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .month-card h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+        }
+        
+        .month-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        .stat-item {
+            font-size: 14px;
+        }
+        
+        .stat-label {
+            color: #6c757d;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        
+        .requirement-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .requirement-item {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .requirement-title {
+            font-size: 14px;
+            color: #6c757d;
+            margin-bottom: 8px;
+        }
+        
+        .requirement-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        
+        .requirement-status.met {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .requirement-status.not-met {
+            color: #dc3545;
+            font-weight: bold;
+        }
+    </style>
+</body>
+</html>

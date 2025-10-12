@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Teacher Panel</h2>
+            <ul>
+                <li><a href="/teacher/dashboard">Dashboard</a></li>
+                <li><a href="/teacher/attendance">Attendance</a></li>
+                <li><a href="/teacher/marks">Marks</a></li>
+                <li><a href="/teacher/timetable" class="active">Timetable</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Timetable -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>My Teaching Schedule</h3>
+                </div>
+                <% if (timetable.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Day</th>
+                                <th>Period</th>
+                                <th>Subject</th>
+                                <th>Class</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% timetable.forEach(entry => { %>
+                                <tr>
+                                    <td><strong><%= entry.day %></strong></td>
+                                    <td>Period <%= entry.period %></td>
+                                    <td><%= entry.subject %></td>
+                                    <td><%= entry.class_name %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div style="padding: 20px; text-align: center;">
+                        <p>No timetable entries found.</p>
+                        <p>Contact the administrator to set up your timetable.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Weekly Schedule View -->
+            <% if (timetable.length > 0) { %>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Weekly Schedule</h3>
+                    </div>
+                    <div class="weekly-schedule">
+                        <% 
+                        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        const scheduleByDay = {};
+                        
+                        // Group timetable by day
+                        timetable.forEach(entry => {
+                            if (!scheduleByDay[entry.day]) {
+                                scheduleByDay[entry.day] = [];
+                            }
+                            scheduleByDay[entry.day].push(entry);
+                        });
+                        
+                        // Sort periods within each day
+                        Object.keys(scheduleByDay).forEach(day => {
+                            scheduleByDay[day].sort((a, b) => parseInt(a.period) - parseInt(b.period));
+                        });
+                        %>
+                        
+                        <div class="schedule-grid">
+                            <% days.forEach(day => { %>
+                                <div class="day-column">
+                                    <div class="day-header"><%= day %></div>
+                                    <% if (scheduleByDay[day]) { %>
+                                        <% scheduleByDay[day].forEach(entry => { %>
+                                            <div class="time-slot">
+                                                <div class="period">P<%= entry.period %></div>
+                                                <div class="subject"><%= entry.subject %></div>
+                                                <div class="class"><%= entry.class_name %></div>
+                                            </div>
+                                        <% }) %>
+                                    <% } else { %>
+                                        <div class="time-slot empty">
+                                            <div class="no-class">No Classes</div>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            <% }) %>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+
+            <!-- Instructions -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Instructions</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <ul>
+                        <li><strong>View Schedule:</strong> Your complete weekly teaching schedule is displayed above.</li>
+                        <li><strong>Class Management:</strong> Use this schedule to plan your teaching activities.</li>
+                        <li><strong>Updates:</strong> Contact the administrator if you need changes to your timetable.</li>
+                        <li><strong>Planning:</strong> Use the period information to prepare lessons and materials in advance.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .weekly-schedule {
+            padding: 20px;
+            overflow-x: auto;
+        }
+        
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 15px;
+            min-width: 600px;
+        }
+        
+        .day-column {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .day-header {
+            background: #2c3e50;
+            color: white;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .time-slot {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+            min-height: 80px;
+        }
+        
+        .time-slot:last-child {
+            border-bottom: none;
+        }
+        
+        .time-slot.empty {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+        
+        .period {
+            font-weight: bold;
+            color: #3498db;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        
+        .subject {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        
+        .class {
+            color: #7f8c8d;
+            font-size: 12px;
+        }
+        
+        .no-class {
+            color: #bdc3c7;
+            padding: 20px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .schedule-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .schedule-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>

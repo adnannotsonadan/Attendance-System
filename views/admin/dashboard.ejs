@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" style="display: none;">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        
+        <div class="sidebar" id="sidebar">
+            <h2>Admin Panel</h2>
+            <ul>
+                <li><a href="/admin/dashboard" class="<%= title.includes('Dashboard') ? 'active' : '' %>">Dashboard</a></li>
+                <li><a href="/admin/teachers" class="<%= title.includes('Teachers') ? 'active' : '' %>">Teachers</a></li>
+                <li><a href="/admin/students" class="<%= title.includes('Students') ? 'active' : '' %>">Students</a></li>
+                <li><a href="/admin/timetable" class="<%= title.includes('Timetable') ? 'active' : '' %>">Timetable</a></li>
+                <li><a href="/admin/attendance" class="<%= title.includes('Attendance') ? 'active' : '' %>">Attendance</a></li>
+                <li><a href="/admin/marks" class="<%= title.includes('Marks') ? 'active' : '' %>">Marks</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user && user.name ? user.name : 'Admin' %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Dashboard Statistics -->
+            <div class="stats-cards">
+                <div class="card students">
+                    <h3>Total Students</h3>
+                    <div class="number"><%= stats.students %></div>
+                </div>
+                <div class="card teachers">
+                    <h3>Total Teachers</h3>
+                    <div class="number"><%= stats.teachers %></div>
+                </div>
+                <div class="card attendance">
+                    <h3>Average Attendance</h3>
+                    <div class="number"><%= stats.avgAttendance %>%</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Quick Actions</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <a href="/admin/teachers" class="btn btn-primary">Manage Teachers</a>
+                    <a href="/admin/students" class="btn btn-success">Manage Students</a>
+                    <a href="/admin/timetable" class="btn btn-warning">Manage Timetable</a>
+                    <a href="/admin/attendance" class="btn btn-primary">View Attendance</a>
+                    <a href="/admin/marks" class="btn btn-success">Manage Marks</a>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>1st Standard School Management System</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <p>Welcome to the 1st Standard School Management System!</p>
+                    <p>This system manages <strong>7 sections (A to G)</strong> with <strong>30 students each</strong>.</p>
+                    
+                    <div class="info-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div class="info-card" style="background: #e8f4fd; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h4 style="color: #2c3e50; margin: 0 0 8px 0;">Total Sections</h4>
+                            <p style="font-size: 24px; font-weight: bold; color: #3498db; margin: 0;">7</p>
+                            <small style="color: #7f8c8d;">A, B, C, D, E, F, G</small>
+                        </div>
+                        <div class="info-card" style="background: #e8f5e8; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h4 style="color: #2c3e50; margin: 0 0 8px 0;">Subjects</h4>
+                            <p style="font-size: 24px; font-weight: bold; color: #27ae60; margin: 0;">3</p>
+                            <small style="color: #7f8c8d;">English, Hindi, Maths</small>
+                        </div>
+                        <div class="info-card" style="background: #fff3e0; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h4 style="color: #2c3e50; margin: 0 0 8px 0;">Students per Section</h4>
+                            <p style="font-size: 24px; font-weight: bold; color: #f39c12; margin: 0;">30</p>
+                            <small style="color: #7f8c8d;">210 total students</small>
+                        </div>
+                    </div>
+                    
+                    <p><strong>Management Features:</strong></p>
+                    <ul style="margin-top: 15px; padding-left: 20px;">
+                        <li>Add and manage teacher accounts for each subject</li>
+                        <li>Add and manage student accounts across all sections</li>
+                        <li>Create and update class timetables for each section</li>
+                        <li>View attendance reports for all sections</li>
+                        <li>Edit student marks and track changes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <style>
+        .mobile-menu-btn {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            z-index: 1001;
+            background: #2c3e50;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            flex-direction: column;
+            width: 40px;
+            height: 40px;
+        }
+        
+        .mobile-menu-btn span {
+            display: block;
+            width: 20px;
+            height: 2px;
+            background: white;
+            margin: 3px 0;
+            transition: 0.3s;
+        }
+        
+        @media (max-width: 992px) {
+            .mobile-menu-btn {
+                display: flex !important;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+            }
+            
+            .sidebar.active {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+    
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.querySelector('.mobile-menu-btn');
+            
+            if (window.innerWidth <= 992 && 
+                !sidebar.contains(event.target) && 
+                !menuBtn.contains(event.target) && 
+                sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        });
+    </script>

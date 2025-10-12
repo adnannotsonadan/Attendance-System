@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <ul>
+                <li><a href="/admin/dashboard">Dashboard</a></li>
+                <li><a href="/admin/teachers">Teachers</a></li>
+                <li><a href="/admin/students">Students</a></li>
+                <li><a href="/admin/timetable">Timetable</a></li>
+                <li><a href="/admin/attendance" class="active">Attendance</a></li>
+                <li><a href="/admin/marks">Marks</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <% if (typeof success !== 'undefined') { %>
+                <div class="alert alert-success">
+                    <%= success %>
+                </div>
+            <% } %>
+            <% if (typeof error !== 'undefined') { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Mark Attendance Section -->
+            <div class="form-container">
+                <h3>Mark Attendance</h3>
+                <form id="attendance-form" action="/admin/attendance/mark" method="POST">
+                    <div class="form-group">
+                        <label for="teacher_id">Select Teacher:</label>
+                        <select id="teacher_id" name="teacher_id" required onchange="loadStudentsForTeacher()">
+                            <option value="">Select a Teacher</option>
+                            <!-- Teachers will be populated by JavaScript -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date">Date:</label>
+                        <input type="date" id="date" name="date" value="<%= new Date().toISOString().split('T')[0] %>" required>
+                    </div>
+                    
+                    <div id="students-container" style="display: none;">
+                        <h4>Students:</h4>
+                        <div id="attendance-grid" class="attendance-grid">
+                            <!-- Students will be populated by JavaScript -->
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save Attendance</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Attendance Records -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Recent Attendance Records</h3>
+                </div>
+                <% if (attendance.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Roll No</th>
+                                <th>Class</th>
+                                <th>Status</th>
+                                <th>Marked By</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% attendance.forEach(record => { %>
+                                <tr>
+                                    <td><%= new Date(record.date).toLocaleDateString() %></td>
+                                    <td><%= record.student_name %></td>
+                                    <td><%= record.roll_no %></td>
+                                    <td><%= record.class_name %></td>
+                                    <td>
+                                        <span class="status-badge status-<%= record.status || 'unknown' %>" id="status-<%= record.id %>">
+                                            <%= record.status ? record.status.charAt(0).toUpperCase() + record.status.slice(1) : 'Unknown' %>
+                                        </span>
+                                    </td>
+                                    <td><%= record.teacher_name || 'System' %></td>
+                                    <td>
+                                        <button class="btn btn-warning" onclick="editAttendance('<%= record.id %>', '<%= record.status %>')">Edit</button>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div style="padding: 20px; text-align: center;">
+                        <p>No attendance records found.</p>
+                        <p>Teachers can mark attendance from their dashboard.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Edit Attendance Modal -->
+            <div id="editAttendanceModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Edit Attendance</h3>
+                        <span class="close" onclick="closeEditModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editAttendanceForm">
+                            <input type="hidden" id="edit-record-id" name="record_id">
+                            <div class="form-group">
+                                <label>Status:</label>
+                                <div>
+                                    <label>
+                                        <input type="radio" name="edit_status" value="present"> Present
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="edit_status" value="absent"> Absent
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary">Update</button>
+                                <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Statistics -->
+            <div class="stats-cards">
+                <div class="card">
+                    <h3>Today's Present</h3>
+                    <div class="number" style="color: #2ecc71;">
+                        <% 
+                        const todayPresent = attendance.filter(record => 
+                            new Date(record.date).toDateString() === new Date().toDateString() && 
+                            record.status === 'present'
+                        ).length;
+                        %>
+                        <%= todayPresent %>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>Today's Absent</h3>
+                    <div class="number" style="color: #e74c3c;">
+                        <% 
+                        const todayAbsent = attendance.filter(record => 
+                            new Date(record.date).toDateString() === new Date().toDateString() && 
+                            record.status === 'absent'
+                        ).length;
+                        %>
+                        <%= todayAbsent %>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-present {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status-absent {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .close {
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .attendance-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .student-attendance-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            background: #f8f9fa;
+        }
+        
+        .student-info {
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .attendance-options {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .attendance-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+    </style>
+
+    <script>
+        // Load teachers when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadTeachers();
+            
+            // Handle edit form submission
+            document.getElementById('editAttendanceForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                updateAttendance();
+            });
+        });
+        
+        // Load teachers from server
+        async function loadTeachers() {
+            try {
+                const response = await fetch('/admin/teachers/data');
+                const teachers = await response.json();
+                
+                const teacherSelect = document.getElementById('teacher_id');
+                teachers.forEach(teacher => {
+                    const option = document.createElement('option');
+                    option.value = teacher.id;
+                    option.textContent = `${teacher.name} (${teacher.class_name})`;
+                    teacherSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading teachers:', error);
+            }
+        }
+        
+        // Load students for selected teacher
+        async function loadStudentsForTeacher() {
+            const teacherId = document.getElementById('teacher_id').value;
+            if (!teacherId) return;
+            
+            try {
+                const response = await fetch(`/admin/students/by-teacher/${teacherId}`);
+                const students = await response.json();
+                
+                const container = document.getElementById('students-container');
+                const grid = document.getElementById('attendance-grid');
+                
+                grid.innerHTML = '';
+                
+                students.forEach(student => {
+                    const card = document.createElement('div');
+                    card.className = 'student-attendance-card';
+                    card.innerHTML = `
+                        <div class="student-info">${student.name} (Roll: ${student.roll_no})</div>
+                        <div class="attendance-options">
+                            <label>
+                                <input type="radio" name="attendance[${student.id}]" value="present" required> Present
+                            </label>
+                            <label>
+                                <input type="radio" name="attendance[${student.id}]" value="absent"> Absent
+                            </label>
+                        </div>
+                    `;
+                    grid.appendChild(card);
+                });
+                
+                container.style.display = 'block';
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
+        }
+        
+        // Edit attendance record
+        function editAttendance(recordId, currentStatus) {
+            document.getElementById('edit-record-id').value = recordId;
+            
+            // Set the current status as selected
+            const radioButtons = document.querySelectorAll('input[name="edit_status"]');
+            radioButtons.forEach(radio => {
+                radio.checked = (radio.value === currentStatus);
+            });
+            
+            document.getElementById('editAttendanceModal').style.display = 'block';
+        }
+        
+        // Close edit modal
+        function closeEditModal() {
+            document.getElementById('editAttendanceModal').style.display = 'none';
+        }
+        
+        // Update attendance record
+        async function updateAttendance() {
+            const recordId = document.getElementById('edit-record-id').value;
+            const status = document.querySelector('input[name="edit_status"]:checked').value;
+            
+            try {
+                const response = await fetch('/admin/attendance/update', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ recordId, status })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update the UI
+                    const statusElement = document.getElementById(`status-${recordId}`);
+                    statusElement.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                    statusElement.className = `status-badge status-${status}`;
+                    
+                    closeEditModal();
+                    alert('Attendance updated successfully!');
+                } else {
+                    alert('Error updating attendance: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error updating attendance:', error);
+                alert('Error updating attendance: ' + error.message);
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('editAttendanceModal');
+            if (event.target === modal) {
+                closeEditModal();
+            }
+        }
+    </script>
+</body>
+</html>

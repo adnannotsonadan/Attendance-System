@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        /* Beautiful Modern CSS */
+        .filter-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .filter-container h3 {
+            color: white;
+            margin: 0 0 20px 0;
+            font-size: 1.5em;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            align-items: end;
+        }
+        
+        .filter-group {
+            flex: 1;
+        }
+        
+        .filter-group label {
+            display: block;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 1em;
+        }
+        
+        .filter-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            background: white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .filter-group select:focus {
+            outline: none;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            transform: translateY(-2px);
+        }
+        
+        .students-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+        
+        .students-header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .students-header h3 {
+            margin: 0;
+            font-size: 1.4em;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .students-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+        }
+        
+        .students-table th {
+            background: #f8f9fa;
+            padding: 15px 12px;
+            text-align: left;
+            font-weight: 700;
+            color: #495057;
+            border-bottom: 3px solid #dee2e6;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .students-table td {
+            padding: 15px 12px;
+            border-bottom: 1px solid #dee2e6;
+            transition: all 0.3s ease;
+            vertical-align: middle;
+        }
+        
+        .student-row {
+            transition: all 0.3s ease;
+        }
+        
+        .student-row:hover {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            transform: scale(1.005);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .student-name {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.05em;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        .student-name:hover {
+            color: #0056b3;
+            text-decoration: underline;
+            transform: translateX(5px);
+        }
+        
+        .subject-marks {
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+        
+        .subject-marks.highlighted {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            color: #1976d2;
+            font-weight: 700;
+            box-shadow: 0 3px 10px rgba(25,118,210,0.3);
+            transform: scale(1.05);
+        }
+        
+        .marks-no-data {
+            color: #6c757d;
+            font-style: italic;
+            background: #f8f9fa;
+            border-radius: 6px;
+        }
+        
+        .marks-has-data {
+            color: #28a745;
+            font-weight: 700;
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-radius: 6px;
+        }
+        
+        .edit-btn {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .edit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.4);
+        }
+        
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+        }
+        
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 25px 80px rgba(0,0,0,0.3);
+            animation: modalAppear 0.4s ease;
+        }
+        
+        @keyframes modalAppear {
+            from { 
+                opacity: 0; 
+                transform: scale(0.7) translateY(-100px) rotateX(30deg); 
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1) translateY(0) rotateX(0); 
+            }
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3em;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close:hover {
+            background: rgba(255,255,255,0.2);
+            transform: rotate(180deg) scale(1.1);
+        }
+        
+        .modal-body {
+            padding: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 700;
+            color: #495057;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102,126,234,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .form-row .form-group {
+            flex: 1;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40,167,69,0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 700;
+            margin-left: 15px;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-3px);
+        }
+        
+        .instructions {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+        }
+        
+        .instructions h3 {
+            color: #495057;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            text-align: center;
+        }
+        
+        .instructions ul {
+            margin: 0;
+            padding-left: 25px;
+        }
+        
+        .instructions li {
+            margin-bottom: 12px;
+            color: #6c757d;
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+        
+        .no-students {
+            text-align: center;
+            padding: 60px 40px;
+            color: #6c757d;
+        }
+        
+        .no-students .icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            display: block;
+            color: #dee2e6;
+        }
+        
+        .no-students h3 {
+            margin: 20px 0 10px 0;
+            color: #495057;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Admin Panel</h2>
+            <ul>
+                <li><a href="/admin/dashboard">Dashboard</a></li>
+                <li><a href="/admin/teachers">Teachers</a></li>
+                <li><a href="/admin/students">Students</a></li>
+                <li><a href="/admin/timetable">Timetable</a></li>
+                <li><a href="/admin/attendance">Attendance</a></li>
+                <li><a href="/admin/marks" class="active">Marks</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <% if (typeof success !== 'undefined') { %>
+                <div class="alert alert-success">
+                    <%= success %>
+                </div>
+            <% } %>
+            <% if (typeof error !== 'undefined') { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Enhanced Filters -->  
+            <div class="filter-container">
+                <h3>🎯 Student Marks Management</h3>
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="subject-filter">📚 Filter by Subject:</label>
+                        <select id="subject-filter" onchange="filterBySubject()">
+                            <option value="all">All Subjects</option>
+                            <option value="English">English</option>
+                            <option value="Math">Math</option>
+                            <option value="Science">Science</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="class-filter">🏫 Filter by Class:</label>
+                        <select id="class-filter" onchange="filterByClass()">
+                            <option value="all">All Classes</option>
+                            <option value="1A">Class 1A</option>
+                            <option value="1B">Class 1B</option>
+                            <option value="1C">Class 1C</option>
+                            <option value="1D">Class 1D</option>
+                            <option value="1E">Class 1E</option>
+                            <option value="1F">Class 1F</option>
+                            <option value="1G">Class 1G</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Students List -->
+            <div class="students-container">
+                <div class="students-header">
+                    <h3>👥 Students List - Click to Edit Marks</h3>
+                </div>
+                <div id="students-list">
+                    <% if (typeof students !== 'undefined' && students.length > 0) { %>
+                        <table class="students-table" id="students-table">
+                            <thead>
+                                <tr>
+                                    <th>👤 Student Name</th>
+                                    <th>🔢 Roll No</th>
+                                    <th>🏫 Class</th>
+                                    <th>📖 English</th>
+                                    <th>🔢 Math</th>
+                                    <th>🔬 Science</th>
+                                    <th>⚙️ Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% 
+                                // Create student marks object
+                                const studentMarks = {};
+                                
+                                // Initialize all students
+                                students.forEach(student => {
+                                    studentMarks[student.id] = {
+                                        id: student.id,
+                                        name: student.name,
+                                        roll_no: student.roll_no,
+                                        class_name: student.class_name,
+                                        English: 'No marks',
+                                        Math: 'No marks', 
+                                        Science: 'No marks'
+                                    };
+                                });
+                                
+                                // Add existing marks if available
+                                if (typeof marks !== 'undefined' && marks.length > 0) {
+                                    marks.forEach(mark => {
+                                        if (studentMarks[mark.student_id]) {
+                                            studentMarks[mark.student_id][mark.subject_name] = mark.marks_obtained + '/' + mark.total_marks;
+                                        }
+                                    });
+                                }
+                                %>
+                                
+                                <% Object.values(studentMarks).forEach(student => { %>
+                                    <tr class="student-row" data-class="<%= student.class_name %>" data-student-id="<%= student.id %>">
+                                        <td>
+                                            <a href="#" class="student-name" onclick="editStudentMarks('<%= student.id %>', '<%= student.name %>')">
+                                                <%= student.name %>
+                                            </a>
+                                        </td>
+                                        <td><%= student.roll_no %></td>
+                                        <td><%= student.class_name %></td>
+                                        <td class="subject-marks English <%= student.English === 'No marks' ? 'marks-no-data' : 'marks-has-data' %>" data-subject="English">
+                                            <%= student.English %>
+                                        </td>
+                                        <td class="subject-marks Math <%= student.Math === 'No marks' ? 'marks-no-data' : 'marks-has-data' %>" data-subject="Math">
+                                            <%= student.Math %>
+                                        </td>
+                                        <td class="subject-marks Science <%= student.Science === 'No marks' ? 'marks-no-data' : 'marks-has-data' %>" data-subject="Science">
+                                            <%= student.Science %>
+                                        </td>
+                                        <td>
+                                            <button class="edit-btn" onclick="editStudentMarks('<%= student.id %>', '<%= student.name %>')">
+                                                ✏️ Edit
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <% }) %>
+                            </tbody>
+                        </table>
+                    <% } else { %>
+                        <div class="no-students">
+                            <span class="icon">😕</span>
+                            <h3>No Students Found</h3>
+                            <p>Please check if students are properly loaded in the system.</p>
+                        </div>
+                    <% } %>
+                </div>
+            </div>
+
+            <!-- Edit Marks Modal -->
+            <div id="editMarksModal" class="modal" style="display: none;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>Edit Marks for <span id="modal-student-name"></span></h3>
+                        <span class="close" onclick="closeModal()">&times;</span>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editMarksForm">
+                            <input type="hidden" id="student-id" name="student_id">
+                            
+                            <div class="form-group">
+                                <label for="subject">📚 Subject:</label>
+                                <select id="subject" name="subject" required>
+                                    <option value="">Select Subject</option>
+                                    <option value="English">English</option>
+                                    <option value="Math">Math</option>
+                                    <option value="Science">Science</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="exam_name">📝 Exam Name:</label>
+                                <select id="exam_name" name="exam_name" required onchange="updateTotalMarks()">
+                                    <option value="">Select Exam Type</option>
+                                    <option value="Unit Test 1">Unit Test 1 (20 marks)</option>
+                                    <option value="Unit Test 2">Unit Test 2 (20 marks)</option>
+                                    <option value="Half Yearly">Half Yearly (70 marks)</option>
+                                    <option value="Finals">Finals (70 marks)</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="marks_obtained">✅ Marks Obtained:</label>
+                                    <input type="number" id="marks_obtained" name="marks_obtained" min="0" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="total_marks">💯 Total Marks:</label>
+                                    <input type="number" id="total_marks" name="total_marks" readonly style="background-color: #f8f9fa; color: #6c757d;" required>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" class="btn-primary">💾 Save Marks</button>
+                                <button type="button" class="btn-secondary" onclick="closeModal()">❌ Cancel</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="instructions">
+                <h3>📋 How to Use This System</h3>
+                <ul>
+                    <li><strong>📊 View Students:</strong> All students are listed with their current marks</li>
+                    <li><strong>🔍 Filter:</strong> Use the dropdowns to filter by subject or class</li>
+                    <li><strong>✏️ Edit Marks:</strong> Click on a student name or "Edit" button to add/edit marks</li>
+                    <li><strong>💾 Add New Marks:</strong> Select subject, enter marks, and save</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function filterBySubject() {
+            const selectedSubject = document.getElementById('subject-filter').value;
+            const rows = document.querySelectorAll('.student-row');
+            const subjectCells = document.querySelectorAll('.subject-marks');
+            
+            // Reset all highlighting first
+            subjectCells.forEach(cell => {
+                cell.classList.remove('highlighted');
+            });
+            
+            rows.forEach(row => {
+                if (selectedSubject === 'all') {
+                    row.style.display = '';
+                } else {
+                    // Show all rows but highlight the selected subject
+                    row.style.display = '';
+                    const targetCell = row.querySelector('.subject-marks.' + selectedSubject);
+                    if (targetCell) {
+                        targetCell.classList.add('highlighted');
+                    }
+                }
+            });
+        }
+        
+        function filterByClass() {
+            const selectedClass = document.getElementById('class-filter').value;
+            const rows = document.querySelectorAll('.student-row');
+            
+            rows.forEach(row => {
+                if (selectedClass === 'all') {
+                    row.style.display = '';
+                } else {
+                    const studentClass = row.getAttribute('data-class');
+                    if (studentClass === selectedClass) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+        
+        function editStudentMarks(studentId, studentName) {
+            document.getElementById('student-id').value = studentId;
+            document.getElementById('modal-student-name').textContent = studentName;
+            document.getElementById('editMarksModal').style.display = 'block';
+            // Reset form when opening
+            document.getElementById('editMarksForm').reset();
+            document.getElementById('student-id').value = studentId; // Set again after reset
+        }
+        
+        function updateTotalMarks() {
+            const examName = document.getElementById('exam_name').value;
+            const totalMarksField = document.getElementById('total_marks');
+            const marksObtainedField = document.getElementById('marks_obtained');
+            
+            // Set total marks and max value based on exam type
+            if (examName === 'Unit Test 1' || examName === 'Unit Test 2') {
+                totalMarksField.value = 20;
+                marksObtainedField.max = 20;
+                marksObtainedField.placeholder = 'Enter marks out of 20';
+            } else if (examName === 'Half Yearly' || examName === 'Finals') {
+                totalMarksField.value = 70;
+                marksObtainedField.max = 70;
+                marksObtainedField.placeholder = 'Enter marks out of 70';
+            } else {
+                totalMarksField.value = '';
+                marksObtainedField.max = '';
+                marksObtainedField.placeholder = 'Select exam type first';
+            }
+        }
+        
+        function closeModal() {
+            document.getElementById('editMarksModal').style.display = 'none';
+            document.getElementById('editMarksForm').reset();
+        }
+        
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle form submission
+            const form = document.getElementById('editMarksForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(this);
+                    const data = {
+                        student_id: formData.get('student_id'),
+                        subject: formData.get('subject'),
+                        exam_name: formData.get('exam_name'),
+                        marks_obtained: formData.get('marks_obtained'),
+                        total_marks: formData.get('total_marks')
+                    };
+                    
+                    // Submit to server
+                    fetch('/admin/marks/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        if (result.success) {
+                            alert('✅ Marks saved successfully!');
+                            closeModal();
+                            location.reload(); // Refresh to show updated marks
+                        } else {
+                            alert('❌ Error saving marks: ' + result.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('❌ Error: ' + error.message);
+                    });
+                });
+            }
+            
+            console.log('🎉 Page loaded! Students found:', document.querySelectorAll('.student-row').length);
+        });
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('editMarksModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+        
+        // Add functionality to edit existing marks by clicking on subject cells
+        document.addEventListener('DOMContentLoaded', function() {
+            const subjectCells = document.querySelectorAll('.subject-marks');
+            subjectCells.forEach(cell => {
+                cell.addEventListener('click', function() {
+                    const studentRow = this.closest('.student-row');
+                    const studentId = studentRow.getAttribute('data-student-id');
+                    const studentName = studentRow.querySelector('.student-name').textContent.trim();
+                    const subject = this.getAttribute('data-subject');
+                    
+                    // Open the modal with pre-filled data
+                    editStudentMarks(studentId, studentName);
+                    
+                    // Pre-select the subject
+                    if (subject) {
+                        document.getElementById('subject').value = subject;
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

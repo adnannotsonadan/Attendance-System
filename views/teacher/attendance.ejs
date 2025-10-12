@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Teacher Panel</h2>
+            <ul>
+                <li><a href="/teacher/dashboard">Dashboard</a></li>
+                <li><a href="/teacher/attendance" class="active">Attendance</a></li>
+                <li><a href="/teacher/marks">Marks</a></li>
+                <li><a href="/teacher/timetable">Timetable</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %> - Class <%= className %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Success/Error Messages -->
+            <% if (typeof success !== 'undefined') { %>
+                <div class="alert alert-success">
+                    <%= success %>
+                </div>
+            <% } %>
+            <% if (typeof error !== 'undefined') { %>
+                <div class="alert alert-error">
+                    <%= error %>
+                </div>
+            <% } %>
+
+            <!-- Mark Attendance Form -->
+            <div class="form-container">
+                <h3>Mark Attendance for Today - <%= new Date().toLocaleDateString() %></h3>
+                <% if (students.length > 0) { %>
+                    <form action="/teacher/attendance/mark" method="POST">
+                        <div class="attendance-grid">
+                            <div class="attendance-header">
+                                <div class="student-info">Student</div>
+                                <div class="attendance-options">Present</div>
+                                <div class="attendance-options">Absent</div>
+                            </div>
+                            
+                            <% students.forEach(student => { %>
+                                <div class="attendance-row">
+                                    <div class="student-info">
+                                        <strong><%= student.name %></strong><br>
+                                        <small>Roll: <%= student.roll_no %></small>
+                                    </div>
+                                    <div class="attendance-options">
+                                        <input type="radio" name="attendance[<%= student.id %>]" value="present" 
+                                               id="present_<%= student.id %>"
+                                               <%= attendanceMap[student.id] === 'present' ? 'checked' : '' %>>
+                                        <label for="present_<%= student.id %>">Present</label>
+                                    </div>
+                                    <div class="attendance-options">
+                                        <input type="radio" name="attendance[<%= student.id %>]" value="absent" 
+                                               id="absent_<%= student.id %>"
+                                               <%= attendanceMap[student.id] === 'absent' ? 'checked' : '' %>>
+                                        <label for="absent_<%= student.id %>">Absent</label>
+                                    </div>
+                                </div>
+                            <% }) %>
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button type="submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 16px;">
+                                Save Attendance
+                            </button>
+                        </div>
+                    </form>
+                <% } else { %>
+                    <div style="padding: 20px; text-align: center;">
+                        <p>No students found in your class (<%= className %>).</p>
+                        <p>Please contact the administrator to add students to your class.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Bulk Actions -->
+            <% if (students.length > 0) { %>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Quick Actions</h3>
+                    </div>
+                    <div style="padding: 20px; text-align: center;">
+                        <button onclick="markAllPresent()" class="btn btn-success">Mark All Present</button>
+                        <button onclick="markAllAbsent()" class="btn btn-danger">Mark All Absent</button>
+                        <button onclick="clearAll()" class="btn btn-warning">Clear All</button>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <style>
+        .attendance-grid {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .attendance-header {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: bold;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .attendance-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            padding: 15px;
+            border-bottom: 1px solid #dee2e6;
+            align-items: center;
+        }
+        
+        .attendance-row:hover {
+            background: #f8f9fa;
+        }
+        
+        .student-info {
+            padding-right: 20px;
+        }
+        
+        .attendance-options {
+            text-align: center;
+        }
+        
+        .attendance-options input[type="radio"] {
+            margin-right: 8px;
+        }
+        
+        .attendance-options label {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .attendance-options input[type="radio"]:checked + label {
+            background: #007bff;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .attendance-header,
+            .attendance-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .attendance-options {
+                display: flex;
+                justify-content: space-around;
+                padding: 10px 0;
+            }
+        }
+    </style>
+
+    <script>
+        function markAllPresent() {
+            const presentRadios = document.querySelectorAll('input[value="present"]');
+            presentRadios.forEach(radio => radio.checked = true);
+        }
+        
+        function markAllAbsent() {
+            const absentRadios = document.querySelectorAll('input[value="absent"]');
+            absentRadios.forEach(radio => radio.checked = true);
+        }
+        
+        function clearAll() {
+            const allRadios = document.querySelectorAll('input[type="radio"]');
+            allRadios.forEach(radio => radio.checked = false);
+        }
+    </script>
+</body>
+</html>

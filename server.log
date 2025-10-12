@@ -1,0 +1,2 @@
+School Management System running on http://localhost:3000
+Please make sure PostgreSQL is running and the database "school_management" exists

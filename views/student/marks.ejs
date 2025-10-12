@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Student Panel</h2>
+            <ul>
+                <li><a href="/student/dashboard">Dashboard</a></li>
+                <li><a href="/student/attendance">Attendance</a></li>
+                <li><a href="/student/marks" class="active">Marks</a></li>
+                <li><a href="/student/timetable">Timetable</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Overall Performance -->
+            <div class="stats-cards">
+                <div class="card students">
+                    <h3>Overall Percentage</h3>
+                    <div class="number"><%= overallPercentage %>%</div>
+                </div>
+                <div class="card teachers">
+                    <h3>Total Exams</h3>
+                    <div class="number"><%= marks.length %></div>
+                </div>
+                <div class="card attendance">
+                    <h3>Grade</h3>
+                    <div class="number">
+                        <% 
+                        const percent = parseFloat(overallPercentage);
+                        let grade = 'F';
+                        if (percent >= 90) grade = 'A+';
+                        else if (percent >= 80) grade = 'A';
+                        else if (percent >= 70) grade = 'B';
+                        else if (percent >= 60) grade = 'C';
+                        else if (percent >= 50) grade = 'D';
+                        %>
+                        <%= grade %>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subject-wise Performance -->
+            <% if (Object.keys(subjectStats).length > 0) { %>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Subject-wise Performance</h3>
+                    </div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Marks Obtained</th>
+                                <th>Total Marks</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                                <th>Exams</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% Object.keys(subjectStats).forEach(subject => { %>
+                                <% 
+                                const stats = subjectStats[subject];
+                                const percentage = ((stats.obtained / stats.total) * 100).toFixed(1);
+                                let grade = 'F';
+                                if (percentage >= 90) grade = 'A+';
+                                else if (percentage >= 80) grade = 'A';
+                                else if (percentage >= 70) grade = 'B';
+                                else if (percentage >= 60) grade = 'C';
+                                else if (percentage >= 50) grade = 'D';
+                                %>
+                                <tr>
+                                    <td><strong><%= subject %></strong></td>
+                                    <td><%= stats.obtained %></td>
+                                    <td><%= stats.total %></td>
+                                    <td>
+                                        <span class="percentage-badge percentage-<%= percentage >= 60 ? 'pass' : 'fail' %>">
+                                            <%= percentage %>%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="grade-badge grade-<%= grade.replace('+', 'plus') %>">
+                                            <%= grade %>
+                                        </span>
+                                    </td>
+                                    <td><%= stats.count %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+            <% } %>
+
+            <!-- Detailed Marks Records -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Detailed Marks Records</h3>
+                </div>
+                <% if (marks.length > 0) { %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Subject</th>
+                                <th>Exam/Test</th>
+                                <th>Marks</th>
+                                <th>Total</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                                <th>Teacher</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% marks.forEach(mark => { %>
+                                <% 
+                                const percentage = ((mark.marks_obtained / mark.total_marks) * 100).toFixed(1);
+                                let grade = 'F';
+                                if (percentage >= 90) grade = 'A+';
+                                else if (percentage >= 80) grade = 'A';
+                                else if (percentage >= 70) grade = 'B';
+                                else if (percentage >= 60) grade = 'C';
+                                else if (percentage >= 50) grade = 'D';
+                                %>
+                                <tr>
+                                    <td><%= new Date(mark.date).toLocaleDateString() %></td>
+                                    <td><%= mark.subject_name %></td>
+                                    <td><%= mark.exam_name %></td>
+                                    <td><%= mark.marks_obtained %></td>
+                                    <td><%= mark.total_marks %></td>
+                                    <td>
+                                        <span class="percentage-badge percentage-<%= percentage >= 60 ? 'pass' : 'fail' %>">
+                                            <%= percentage %>%
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="grade-badge grade-<%= grade.replace('+', 'plus') %>">
+                                            <%= grade %>
+                                        </span>
+                                    </td>
+                                    <td><%= mark.teacher_name || 'Not Assigned' %></td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                <% } else { %>
+                    <div style="padding: 20px; text-align: center;">
+                        <p>No marks records found.</p>
+                        <p>Your teachers will add marks as exams and tests are conducted.</p>
+                    </div>
+                <% } %>
+            </div>
+
+            <!-- Performance Analysis -->
+            <% if (marks.length > 0) { %>
+                <div class="table-container">
+                    <div class="table-header">
+                        <h3>Performance Analysis</h3>
+                    </div>
+                    <div style="padding: 20px;">
+                        <div class="analysis-grid">
+                            <div class="analysis-item">
+                                <h4>Strongest Subject</h4>
+                                <% 
+                                let bestSubject = '';
+                                let bestPercentage = 0;
+                                Object.keys(subjectStats).forEach(subject => {
+                                    const percentage = (subjectStats[subject].obtained / subjectStats[subject].total) * 100;
+                                    if (percentage > bestPercentage) {
+                                        bestPercentage = percentage;
+                                        bestSubject = subject;
+                                    }
+                                });
+                                %>
+                                <p><strong><%= bestSubject %></strong></p>
+                                <p><%= bestPercentage.toFixed(1) %>%</p>
+                            </div>
+                            
+                            <div class="analysis-item">
+                                <h4>Needs Improvement</h4>
+                                <% 
+                                let worstSubject = '';
+                                let worstPercentage = 100;
+                                Object.keys(subjectStats).forEach(subject => {
+                                    const percentage = (subjectStats[subject].obtained / subjectStats[subject].total) * 100;
+                                    if (percentage < worstPercentage) {
+                                        worstPercentage = percentage;
+                                        worstSubject = subject;
+                                    }
+                                });
+                                %>
+                                <p><strong><%= worstSubject %></strong></p>
+                                <p><%= worstPercentage.toFixed(1) %>%</p>
+                            </div>
+                            
+                            <div class="analysis-item">
+                                <h4>Recent Performance</h4>
+                                <% 
+                                const recentMarks = marks.slice(0, 5);
+                                const recentAvg = recentMarks.length > 0 ? 
+                                    recentMarks.reduce((sum, mark) => sum + ((mark.marks_obtained / mark.total_marks) * 100), 0) / recentMarks.length : 0;
+                                %>
+                                <p><strong>Last 5 Tests</strong></p>
+                                <p><%= recentAvg.toFixed(1) %>%</p>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-left: 4px solid #007bff; border-radius: 4px;">
+                            <h5>Academic Summary:</h5>
+                            <p>
+                                <% if (parseFloat(overallPercentage) >= 90) { %>
+                                    🎉 <strong>Excellent performance!</strong> Keep up the outstanding work.
+                                <% } else if (parseFloat(overallPercentage) >= 75) { %>
+                                    👍 <strong>Good performance!</strong> You're doing well academically.
+                                <% } else if (parseFloat(overallPercentage) >= 60) { %>
+                                    📚 <strong>Satisfactory performance.</strong> Consider focusing more on weaker subjects.
+                                <% } else { %>
+                                    📖 <strong>Needs improvement.</strong> Consider seeking help from teachers and studying more regularly.
+                                <% } %>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <style>
+        .percentage-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .percentage-pass { background: #d4edda; color: #155724; }
+        .percentage-fail { background: #f8d7da; color: #721c24; }
+        
+        .grade-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .grade-Aplus { background: #28a745; }
+        .grade-A { background: #20c997; }
+        .grade-B { background: #17a2b8; }
+        .grade-C { background: #ffc107; color: #212529; }
+        .grade-D { background: #fd7e14; }
+        .grade-F { background: #dc3545; }
+        
+        .analysis-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        
+        .analysis-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            border-left: 4px solid #007bff;
+        }
+        
+        .analysis-item h4 {
+            margin: 0 0 10px 0;
+            color: #2c3e50;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        
+        .analysis-item p {
+            margin: 5px 0;
+        }
+        
+        .analysis-item p:first-of-type {
+            font-size: 16px;
+            color: #2c3e50;
+        }
+        
+        .analysis-item p:last-of-type {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</body>
+</html>

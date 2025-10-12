@@ -1,0 +1,115 @@
+// Set environment variable to use mock database
+process.env.USE_MOCK_DB = 'true';
+
+const express = require('express');
+const session = require('express-session');
+const bodyParser = require('body-parser');
+const path = require('path');
+const bcrypt = require('bcryptjs');
+
+// Import mock database for immediate testing (no PostgreSQL required)
+const pool = require('./config/mock-database');
+
+// Import routes
+const authRoutes = require('./routes/auth');
+const adminRoutes = require('./routes/admin');
+const teacherRoutes = require('./routes/teacher');
+const studentRoutes = require('./routes/student');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Set EJS as template engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+// Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Session configuration
+app.use(session({
+  secret: 'school-management-secret-key',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: false, // Set to true if using HTTPS
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// Authentication middleware
+const requireAuth = (req, res, next) => {
+  if (!req.session.userId || !req.session.userRole) {
+    return res.redirect('/login');
+  }
+  next();
+};
+
+// Role-based access middleware
+const requireRole = (role) => {
+  return (req, res, next) => {
+    if (req.session.userRole !== role) {
+      return res.status(403).send('Unauthorized access');
+    }
+    next();
+  };
+};
+
+// Make user info available to all templates
+app.use((req, res, next) => {
+  res.locals.user = {
+    id: req.session.userId,
+    role: req.session.userRole,
+    name: req.session.userName,
+    email: req.session.userEmail
+  };
+  next();
+});
+
+// Routes
+app.use('/', authRoutes);
+app.use('/admin', requireAuth, requireRole('admin'), adminRoutes);
+app.use('/teacher', requireAuth, requireRole('teacher'), teacherRoutes);
+app.use('/student', requireAuth, requireRole('student'), studentRoutes);
+
+// Test session endpoint
+app.get('/test-session', (req, res) => {
+  res.json({
+    session: {
+      userId: req.session.userId,
+      userRole: req.session.userRole,
+      userName: req.session.userName
+    }
+  });
+});
+
+// Home route - redirect to login
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).render('404', { title: 'Page Not Found' });
+});
+
+// Error handler
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).send('Something went wrong!');
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 School Management System running on http://localhost:${PORT}`);
+  console.log('📊 Using MOCK DATABASE (no PostgreSQL required for testing)');
+  console.log('\n🔐 Demo Login Credentials:');
+  console.log('👨‍💼 Admin: admin@school.com / admin123');
+  console.log('👨‍🏫 Teacher: teacher@school.com / teacher123');
+  console.log('👨‍🎓 Student: student@school.com / student123');
+  console.log('\n🌐 Open your browser and navigate to http://localhost:3000');
+});
+
+module.exports = app;

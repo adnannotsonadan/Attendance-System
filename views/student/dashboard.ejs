@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %></title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="dashboard">
+        <div class="sidebar">
+            <h2>Student Panel</h2>
+            <ul>
+                <li><a href="/student/dashboard" class="active">Dashboard</a></li>
+                <li><a href="/student/attendance">Attendance</a></li>
+                <li><a href="/student/marks">Marks</a></li>
+                <li><a href="/student/timetable">Timetable</a></li>
+            </ul>
+        </div>
+        
+        <div class="main-content">
+            <div class="header">
+                <h1><%= title %></h1>
+                <div>
+                    <span>Welcome, <%= user.name %></span>
+                    <a href="/logout" class="logout-btn">Logout</a>
+                </div>
+            </div>
+
+            <!-- Student Info Card -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Student Information</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <div class="student-info-grid">
+                        <div class="info-item">
+                            <strong>Name:</strong> <%= studentInfo.name %>
+                        </div>
+                        <div class="info-item">
+                            <strong>Roll Number:</strong> <%= studentInfo.roll_no %>
+                        </div>
+                        <div class="info-item">
+                            <strong>Class:</strong> <%= studentInfo.class_name %>
+                        </div>
+                        <div class="info-item">
+                            <strong>Email:</strong> <%= studentInfo.email %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Statistics -->
+            <div class="stats-cards">
+                <div class="card students">
+                    <h3>Attendance</h3>
+                    <div class="number"><%= attendancePercentage %>%</div>
+                </div>
+                <div class="card teachers">
+                    <h3>Present Days</h3>
+                    <div class="number"><%= stats.present %></div>
+                </div>
+                <div class="card attendance">
+                    <h3>Total Days</h3>
+                    <div class="number"><%= stats.total %></div>
+                </div>
+            </div>
+
+            <!-- Attendance Breakdown -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Attendance Summary</h3>
+                </div>
+                <div class="attendance-summary">
+                    <div class="summary-item present">
+                        <div class="summary-label">Present</div>
+                        <div class="summary-value"><%= stats.present %> days</div>
+                        <div class="summary-percentage">
+                            <%= stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : 0 %>%
+                        </div>
+                    </div>
+                    <div class="summary-item absent">
+                        <div class="summary-label">Absent</div>
+                        <div class="summary-value"><%= stats.absent %> days</div>
+                        <div class="summary-percentage">
+                            <%= stats.total > 0 ? ((stats.absent / stats.total) * 100).toFixed(1) : 0 %>%
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="table-container">
+                <div class="table-header">
+                    <h3>Quick Access</h3>
+                </div>
+                <div style="padding: 20px;">
+                    <a href="/student/attendance" class="btn btn-primary">View Detailed Attendance</a>
+                    <a href="/student/marks" class="btn btn-success">View My Marks</a>
+                    <a href="/student/timetable" class="btn btn-warning">View Class Timetable</a>
+                </div>
+            </div>
+
+            <!-- Academic Performance Alert -->
+            <% if (parseFloat(attendancePercentage) < 75) { %>
+                <div class="table-container">
+                    <div class="table-header" style="background: #e74c3c;">
+                        <h3 style="color: white;">⚠️ Attendance Alert</h3>
+                    </div>
+                    <div style="padding: 20px; background: #f8d7da; color: #721c24;">
+                        <p><strong>Low Attendance Warning:</strong> Your attendance is <%= attendancePercentage %>%, which is below the required 75% minimum.</p>
+                        <p>Please make sure to attend classes regularly to meet academic requirements.</p>
+                    </div>
+                </div>
+            <% } else if (parseFloat(attendancePercentage) >= 90) { %>
+                <div class="table-container">
+                    <div class="table-header" style="background: #28a745;">
+                        <h3 style="color: white;">🎉 Excellent Attendance!</h3>
+                    </div>
+                    <div style="padding: 20px; background: #d4edda; color: #155724;">
+                        <p><strong>Great Job!</strong> Your attendance is <%= attendancePercentage %>%, which is excellent!</p>
+                        <p>Keep up the good work with your consistent attendance.</p>
+                    </div>
+                </div>
+            <% } %>
+        </div>
+    </div>
+
+    <style>
+        .student-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .attendance-summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .summary-item {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            border: 2px solid transparent;
+        }
+        
+        .summary-item.present {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .summary-item.absent {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .summary-item.late {
+            background: #fff3cd;
+            border-color: #ffc107;
+        }
+        
+        .summary-label {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .summary-value {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .summary-percentage {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .attendance-summary {
+                grid-template-columns: 1fr;
+            }
+            
+            .student-info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</body>
+</html>
